@@ -27,7 +27,7 @@ exports.addToCart = async (req, res) => {
 
     await cart.save();
 
-    // ✅ Call /sheet/cart-entry route internally
+
 const { name, email, phone ,productname} = req.user;
 
 await axios.post(`${process.env.INTERNAL_API_BASE}/api/cart-entry`, {
