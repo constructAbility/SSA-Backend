@@ -17,7 +17,7 @@ module.exports = async (req, res, next) => {
     const user = await User.findById(decoded.id).select('name email phone');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    req.user = user; // ✅ Store full user object in req.user
+    req.user = user; 
     next();
   } catch (err) {
     return res.status(401).json({ message: 'Invalid token' });
