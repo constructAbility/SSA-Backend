@@ -23,7 +23,7 @@ app.use('/api/cart', cartRoutes);
 
 mongoose.connect('mongodb+srv://enterpricesssa:SAA2025@ssadatabase.mqs6quf.mongodb.net/?retryWrites=true&w=majority&appName=SSADATABASE')
   .then(() => {
-    console.log('✅ MongoDB connected');
+    console.log('MongoDB connected');
     app.listen(5000, () => console.log('🚀 Server running on port 5000'));
   })
   .catch(err => console.log(err));
