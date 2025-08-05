@@ -14,16 +14,16 @@ const auth = new google.auth.GoogleAuth({
 
 const SHEET_ID = process.env.GOOGLE_SHEET_ID;
 
-const appendToSheet = async (range, values) => {
-  const authClient = await auth.getClient();
-  const sheets = google.sheets({ version: 'v4', auth: authClient });
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: SHEET_ID,
-    range,
-    valueInputOption: 'USER_ENTERED',
-    requestBody: { values: [values] },
-  });
-};
+      const appendToSheet = async (range, values) => {
+                   const authClient = await auth.getClient();
+                    const sheets = google.sheets({ version: 'v4', auth: authClient });
+                    await sheets.spreadsheets.values.append({
+                      spreadsheetId: SHEET_ID,
+                      range,
+                      valueInputOption: 'USER_ENTERED',
+                      requestBody: { values: [values] },
+                        });
+                      };
 
 
 router.post('/inq',async(req,res)=>{
@@ -42,7 +42,7 @@ router.post('/cart-entry', async (req, res) => {
   try {
     const { username, email, phone, productId, productname, price, quantity, total } = req.body;
 
-       console.log("Received data:", req.body);
+      //  console.log("Received data:", req.body);
     await appendToSheet('CART!A2:I', [
       username,   
       email,      

@@ -2,60 +2,62 @@ const Cart = require('../models/Cart');
 const axios = require('axios');
 
 exports.addToCart = async (req, res) => {
-  const { productId, name, price, quantity } = req.body;
-  const userId = req.user.id;
+  const { productId, productname, price: rawPrice, quantity: rawQty } = req.body;
+  const userId = req.user._id.toString();
+
+  const price = Number(rawPrice);
+  const quantity = Number(rawQty);
+  const total = price * quantity;
 
   try {
     let cart = await Cart.findOne({ userId });
-    const total = price * quantity;
 
     if (cart) {
       const index = cart.items.findIndex(item => item.productId === productId);
       if (index > -1) {
         cart.items[index].quantity += quantity;
       } else {
-        cart.items.push({ productId, name, price, quantity });
+        cart.items.push({ productId, productname, price, quantity });
       }
       cart.totalAmount += total;
     } else {
       cart = new Cart({
         userId,
-        items: [{ productId, name, price, quantity }],
+        items: [{ productId, productname, price, quantity }],
         totalAmount: total
       });
     }
 
     await cart.save();
 
-    // ✅ Call /sheet/cart-entry route internally
-const { name, email, phone ,productname} = req.user;
+    const { name, email, phone } = req.user;
 
-await axios.post(`${process.env.INTERNAL_API_BASE}/api/cart-entry`, {
-  username: name,
-  email,
-  phone,
-  productId,
-  productname: productname,
-  price,
-  quantity,
-  total
-});
-
-
+  
+    if (process.env.INTERNAL_API_BASE) {
+      await axios.post(`${process.env.INTERNAL_API_BASE}/api/cart-entry`, {
+        username: name,
+        email,
+        phone,
+        productId,
+        productname,
+        price,
+        quantity,
+        total
+      });
+    }
 
     res.json(cart);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error adding to cart' });
+    console.error('Cart Add Error:', err.message);
+    res.status(500).json({ message: 'Error adding to cart', error: err.message });
   }
 };
 
-
 exports.getCart = async (req, res) => {
   try {
-    const cart = await Cart.findOne({ userId: req.user.id });
+    const cart = await Cart.findOne({ userId: req.user._id.toString() });
     res.json(cart);
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching cart' });
+    res.status(500).json({ message: 'Error fetching cart', error: err.message });
   }
 };
