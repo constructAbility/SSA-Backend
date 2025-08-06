@@ -4,10 +4,10 @@ const axios = require('axios');
 
 
 exports.addToCart = async (req, res) => {
-  const { productId, productname, quantity: rawQty, phone ,img } = req.body;
+  const { productId, productname, quantity: rawQty,img } = req.body;
   const userId = req.user._id;
 
-  if (!productId || !productname || rawQty === undefined|| !phone || !img) {
+  if (!productId || !productname || rawQty === undefined|| !img) {
     return res.status(400).json({ message: 'productId, productname, and quantity are required' });
   }
 
@@ -27,25 +27,25 @@ exports.addToCart = async (req, res) => {
       if (index > -1) {
         cart.items[index].quantity += quantity;
       } else {
-        cart.items.push({ productId, productname, phone ,quantity ,img });
+        cart.items.push({ productId, productname,quantity ,img });
       }
     } else {
       cart = new Cart({
         userId,
-        items: [{ productId, productname, quantity , phone ,img}]
+        items: [{ productId, productname, quantity ,img}]
       });
     }
 
     await cart.save();
 
 
-    const { name, email, phone } = req.user;
+    const { name, email} = req.user;
     try {
       if (process.env.INTERNAL_API_BASE) {
         await axios.post(`${process.env.INTERNAL_API_BASE}/api/cart-entry`, {
           username: name,
           email,
-          phone,
+         
           productId,
           productname,
           quantity
