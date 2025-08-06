@@ -17,7 +17,6 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // Email lowercase for consistency
     const userExist = await User.findOne({ email: email.trim().toLowerCase() });
 
     if (userExist) {
@@ -28,7 +27,7 @@ exports.register = async (req, res) => {
       name,
       email: email.trim().toLowerCase(),
       password,
-      role: 'user'  // Default role 'user'
+      role: 'user'  
     });
 
     const token = generateToken(user);
@@ -53,7 +52,6 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user by email
     const user = await User.findOne({ email: email.trim().toLowerCase() });
     if (!user) return res.status(400).json({ message: 'User not found' });
 
