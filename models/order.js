@@ -19,6 +19,7 @@ const orderSchema = new mongoose.Schema({
       quantity: Number,
     }
   ],
+   quotationNumber:{type:String,unique:true,require:true},
   totalAmount: Number,
   createdAt: { type: Date, default: Date.now }
 });

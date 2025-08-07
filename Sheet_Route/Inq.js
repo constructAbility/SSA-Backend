@@ -3,7 +3,29 @@ require("dotenv").config();
 const express = require("express");
 const { google } = require("googleapis");
 const Order = require("../models/order");
+const Counter = require("../models/Counter");
 const router = express.Router();
+
+
+async function generateQuotationNumber() {
+  const now = new Date();
+  const year = now.getFullYear().toString().slice(-2); 
+  const month = String(now.getMonth() + 1).padStart(2, '0'); 
+  const prefix = `${year}${month}`;  
+
+  let counter = await Counter.findOne({ prefix });
+
+  if (!counter) {
+    counter = new Counter({ prefix, count: 1000 });
+  } else {
+    counter.count += 1;
+  }
+
+  await counter.save();
+
+  const serialStr = counter.count.toString().padStart(4, '0'); 
+  return prefix + serialStr; 
+}
 
 const auth = new google.auth.GoogleAuth({
   credentials: {
@@ -26,6 +48,8 @@ const appendToSheet = async (range, values) => {
   });
 };
 
+
+//yaha imq jo j wo order place wala route h 
 router.post("/inq", async (req, res) => {
   try {
     const { customer, items } = req.body;
@@ -44,10 +68,12 @@ router.post("/inq", async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
+    const quotationNumber = await generateQuotationNumber();
+
     const order = new Order({
       customer,
       items,
-
+      quotationNumber,
       createdAt: new Date(),
     });
 
@@ -58,7 +84,8 @@ router.post("/inq", async (req, res) => {
       .map((item) => `${item.productname} (x${item.quantity})`)
       .join(", ");
 
-    await appendToSheet("INQ!A1:H", [
+    await appendToSheet("INQ!A1:I", [
+      quotationNumber,
       fullName,
       customer.email,
       customer.phone,
@@ -66,11 +93,14 @@ router.post("/inq", async (req, res) => {
       customer.city,
       customer.pincode,
       productSummary,
-
       new Date().toLocaleString(),
     ]);
 
-    res.status(201).json({ message: "Order placed successfully", order });
+    res.status(201).json({
+      message: "Order placed successfully",
+      quotationNumber,
+      order,
+    });
   } catch (err) {
     console.error("Order Error:", err);
     res
@@ -78,6 +108,7 @@ router.post("/inq", async (req, res) => {
       .json({ message: "Failed to place order", error: err.message });
   }
 });
+
 router.post("/cart-entry", async (req, res) => {
   try {
     const {
