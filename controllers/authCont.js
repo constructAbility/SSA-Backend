@@ -6,7 +6,7 @@ const generateToken = (user) => {
   return jwt.sign(
     { id: user._id, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: '1h' }
   );
 };
 
@@ -27,12 +27,12 @@ exports.register = async (req, res) => {
 
     // ✅ Password hash karo abhi se
     const bcrypt = require('bcrypt');
-    const hashedPassword = await bcrypt.hash(password, 10);
+   
 
     const verifyToken = jwt.sign(
-      { name, email: email.trim().toLowerCase(), password: hashedPassword },
+      { name, email: email.trim().toLowerCase(), password},
       process.env.JWT_SECRET,
-      { expiresIn: '15m' }
+      { expiresIn: '1h' }
     );
 
     const link = `${process.env.BASE_URL}/api/auth/verify/${verifyToken}`;
@@ -46,7 +46,7 @@ const emailHTML = (userName, link) => `
             <!-- Header -->
             <tr>
               <td align="center" style="background: #fff; padding: 15px 0; border-bottom: 3px solid #1744a1;">
-                <a href="${link}" target="_blank">
+             
                   <img src="https://res.cloudinary.com/dpk2qxvkb/image/upload/v1754552334/logo-ssa-2_jojbs5.png" alt="logo" style="height: 60px;" />
                 </a>
               </td>
@@ -69,7 +69,7 @@ const emailHTML = (userName, link) => `
             <!-- Approved Image -->
             <tr>
               <td align="center" style="padding: 20px 0;">
-                <a href="${link}" target="_blank">
+             
                   <img src="https://res.cloudinary.com/dpk2qxvkb/image/upload/v1754552442/Approved_i2z7gk.gif" alt="Approved" style="max-width: 100%; height: auto;" />
                 </a>
               </td>
@@ -99,7 +99,7 @@ const emailHTML = (userName, link) => `
   await sendEmail(
   email,
   'Verify your Email - SSA',
-  emailHTML(name, link) // ✅ use name and link here
+  emailHTML(name, link) 
 );
 
 
@@ -117,6 +117,8 @@ const emailHTML = (userName, link) => `
 exports.verifyEmail = async (req, res) => {
   try {
     const decoded = jwt.verify(req.params.token, process.env.JWT_SECRET);
+    console.log('Decoded token:', decoded);
+
     const { name, email, password } = decoded;
 
     if (!name || !email || !password) {
@@ -131,19 +133,19 @@ exports.verifyEmail = async (req, res) => {
     const user = await User.create({
       name,
       email,
-      password,
+      password, 
       role: 'user',
       isVerified: true
     });
 
-    console.log('User created:', user._id);
-
-    return res.redirect(`${process.env.FRONTEND_URL}/login?verified=true`);
+    console.log('✅ User created:', user._id);
+    return res.redirect(`${process.env.FRONTEND_URL}`);
   } catch (err) {
-    console.error('Verification Error:', err.message);
-    return res.status(400).send('<h2>Token invalid or expired.</h2>');
+    console.error('❌ Verification Error:', err.name, err.message);
+    return res.status(400).send(`<h2>Token invalid or expired.<br>${err.message}</h2>`);
   }
 };
+
 
 
 
