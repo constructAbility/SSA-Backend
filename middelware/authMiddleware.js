@@ -9,7 +9,7 @@ module.exports = async (req, res, next) => {
   }
 
   const token = authHeader.split(' ')[1];
-  // console.log("🔐 Incoming Token:", token);
+  // console.log(" Incoming Token:", token);
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

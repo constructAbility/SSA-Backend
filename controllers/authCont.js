@@ -25,7 +25,6 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // ✅ Password hash karo abhi se
     const bcrypt = require('bcrypt');
    
 
@@ -138,10 +137,10 @@ exports.verifyEmail = async (req, res) => {
       isVerified: true
     });
 
-    console.log('✅ User created:', user._id);
+    console.log('User created:', user._id);
     return res.redirect(`${process.env.FRONTEND_URL}`);
   } catch (err) {
-    console.error('❌ Verification Error:', err.name, err.message);
+    console.error(' Verification Error:', err.name, err.message);
     return res.status(400).send(`<h2>Token invalid or expired.<br>${err.message}</h2>`);
   }
 };
