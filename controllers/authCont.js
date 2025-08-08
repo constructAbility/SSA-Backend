@@ -25,27 +25,19 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    const user = await User.create({
-      name,
-      email: email.trim().toLowerCase(),
-      password,
-      role: 'user',
-      isVerified: false,
-    });
-
+    // ✅ Password hash karo abhi se
+    const bcrypt = require('bcrypt');
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const verifyToken = jwt.sign(
-      { email: user.email },
+      { name, email: email.trim().toLowerCase(), password: hashedPassword },
       process.env.JWT_SECRET,
       { expiresIn: '15m' }
     );
 
     const link = `${process.env.BASE_URL}/api/auth/verify/${verifyToken}`;
-
-    await sendEmail(
-      user.email,
-      'Verify your Email - SSA',
-      `<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background: #fff;">
+const emailHTML = (userName, link) => `
+  <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background: #fff;">
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="height: 100vh;">
       <tr>
         <td align="center">
@@ -54,7 +46,7 @@ exports.register = async (req, res) => {
             <!-- Header -->
             <tr>
               <td align="center" style="background: #fff; padding: 15px 0; border-bottom: 3px solid #1744a1;">
-                <a href="https://ssaenterprises.com/" target="_blank">
+                <a href="${link}" target="_blank">
                   <img src="https://res.cloudinary.com/dpk2qxvkb/image/upload/v1754552334/logo-ssa-2_jojbs5.png" alt="logo" style="height: 60px;" />
                 </a>
               </td>
@@ -63,7 +55,7 @@ exports.register = async (req, res) => {
             <!-- Greeting -->
             <tr>
               <td align="center" style="padding: 40px 20px 10px;">
-                <h2 style="font-size: 24px; color: #1744a1; margin: 0;">Hello ${user.name}</h2>
+                <h2 style="font-size: 24px; color: #1744a1; margin: 0;">Hello ${userName}</h2>
               </td>
             </tr>
 
@@ -77,7 +69,7 @@ exports.register = async (req, res) => {
             <!-- Approved Image -->
             <tr>
               <td align="center" style="padding: 20px 0;">
-                <a href="https://ssaenterprises.com/" target="_blank">
+                <a href="${link}" target="_blank">
                   <img src="https://res.cloudinary.com/dpk2qxvkb/image/upload/v1754552442/Approved_i2z7gk.gif" alt="Approved" style="max-width: 100%; height: auto;" />
                 </a>
               </td>
@@ -101,15 +93,23 @@ exports.register = async (req, res) => {
         </td>
       </tr>
     </table>
-  </body>`
-    );
+  </body>
+`;
 
-    res.status(201).json({
+  await sendEmail(
+  email,
+  'Verify your Email - SSA',
+  emailHTML(name, link) // ✅ use name and link here
+);
+
+
+    return res.status(201).json({
       message: 'Registration successful. Please verify your email.',
     });
+
   } catch (err) {
     console.error('Register Error:', err.message);
-    res.status(500).json({ message: 'Registration failed', error: err.message });
+    return res.status(500).json({ message: 'Registration failed', error: err.message });
   }
 };
 
@@ -117,26 +117,34 @@ exports.register = async (req, res) => {
 exports.verifyEmail = async (req, res) => {
   try {
     const decoded = jwt.verify(req.params.token, process.env.JWT_SECRET);
-    const user = await User.findOne({ email: decoded.email });
+    const { name, email, password } = decoded;
 
-    if (!user) {
-      return res.status(404).send('<h2>User not found.</h2>');
+    if (!name || !email || !password) {
+      return res.status(400).send('<h2>Invalid or incomplete token data</h2>');
     }
 
-    if (user.isVerified) {
+    const existing = await User.findOne({ email });
+    if (existing) {
       return res.send('<h2>Email already verified.</h2>');
     }
 
-    user.isVerified = true;
-    await user.save();
+    const user = await User.create({
+      name,
+      email,
+      password,
+      role: 'user',
+      isVerified: true
+    });
 
-    // Redirect to login page after verification (frontend URL)
-    res.redirect(`${process.env.FRONTEND_URL}/login? verified=true`);
+    console.log('User created:', user._id);
+
+    return res.redirect(`${process.env.FRONTEND_URL}/login?verified=true`);
   } catch (err) {
-    console.error('Email verification failed:', err);
-    return res.status(400).send('<h2>Invalid or expired verification link.</h2>');
+    console.error('Verification Error:', err.message);
+    return res.status(400).send('<h2>Token invalid or expired.</h2>');
   }
 };
+
 
 
 exports.login = async (req, res) => {
@@ -153,7 +161,7 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    // ✅ Check if user is verified
+
     if (!user.isVerified) {
       return res.status(403).json({ message: 'Please verify your email before logging in.' });
     }
