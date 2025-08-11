@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
+    quotationNumber:{type:String,unique:true,require:true},
+  totalAmount: Number,
+  createdAt: { type: Date, default: Date.now },
   customer: {
     email: String,
     firstName: String,
@@ -19,9 +22,7 @@ const orderSchema = new mongoose.Schema({
       quantity: Number,
     }
   ],
-   quotationNumber:{type:String,unique:true,require:true},
-  totalAmount: Number,
-  createdAt: { type: Date, default: Date.now }
+ 
 });
 
 module.exports = mongoose.model('Order', orderSchema);

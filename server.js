@@ -8,6 +8,7 @@ const sheets = require('./Sheet_Route/Inq');
 const authRoutes = require('./routes/auth');
 const cartRoutes = require('./routes/cart');
 const productroute=require('./routes/product');
+// const OrderDetails=require('./routes/orderDetails')
 
 dotenv.config();
 const app = express();
@@ -21,7 +22,7 @@ app.use('/api', sheets);
 app.use('/api/auth', authRoutes);      
 app.use('/api/cart', cartRoutes);  
 app.use('/api/product',productroute);    
-
+// app.use('/api/order',OrderDetails)
 
 mongoose.connect(process.env.MONGO_URL)
   .then(() => {
