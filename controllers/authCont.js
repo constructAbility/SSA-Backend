@@ -14,9 +14,9 @@ const generateToken = (user) => {
 
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password , role='user'} = req.body;
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password ) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
@@ -28,11 +28,11 @@ exports.register = async (req, res) => {
     const bcrypt = require('bcrypt');
    
 
-    const verifyToken = jwt.sign(
-      { name, email: email.trim().toLowerCase(), password},
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
+  const verifyToken = jwt.sign(
+  { name, email: email.trim().toLowerCase(), password, role }, 
+  process.env.JWT_SECRET,
+  { expiresIn: '1h' }
+);
 
     const link = `${process.env.BASE_URL}/api/auth/verify/${verifyToken}`;
 const emailHTML = (userName, link) => `
@@ -118,9 +118,9 @@ exports.verifyEmail = async (req, res) => {
     const decoded = jwt.verify(req.params.token, process.env.JWT_SECRET);
     console.log('Decoded token:', decoded);
 
-    const { name, email, password } = decoded;
+    const { name, email, password , role} = decoded;
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !role) {
       return res.status(400).send('<h2>Invalid or incomplete token data</h2>');
     }
 
@@ -133,7 +133,7 @@ exports.verifyEmail = async (req, res) => {
       name,
       email,
       password, 
-      role: 'user',
+      role,
       isVerified: true
     });
 

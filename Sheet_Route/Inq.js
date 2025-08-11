@@ -4,6 +4,7 @@ const express = require("express");
 const { google } = require("googleapis");
 const Order = require("../models/order");
 const Counter = require("../models/Counter");
+const sendEmail = require('../utils/sendEmail');
 const router = express.Router();
 
 
@@ -95,6 +96,23 @@ router.post("/inq", async (req, res) => {
       productSummary,
       new Date().toLocaleString(),
     ]);
+      const emailContent = `
+      <h2>Quotation - ${quotationNumber}</h2>
+      <p>Hello ${fullName},</p>
+      <p>Thank you for your inquiry. Here is your quotation:</p>
+      <ul>
+        ${items.map(item => `<li>${item.productname} - ₹${item.price} x ${item.quantity}</li>`).join("")}
+      </ul>
+      <p><strong>Address:</strong> ${customer.address}, ${customer.city} - ${customer.pincode}</p>
+      <p><strong>Phone:</strong> ${customer.phone}</p>
+      <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+
+      <p>If any question please contect : 78xxxxxx, 87xxxxxx
+      </p>
+      
+      
+    `;
+     await sendEmail(customer.email, `Your Quotation - ${quotationNumber}`, emailContent);
 
     res.status(201).json({
       message: "Order placed successfully",
