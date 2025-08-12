@@ -3,13 +3,14 @@ const Product = require('../models/Product');
 
 exports.createProduct = async (req, res) => {
   try {
-
+  
     if (req.file) {
       req.body.productImage = `/uploads/${req.file.filename}`;
     }
 
-  
-    if (typeof req.body.relatedProductIds === 'string') {
+    
+
+    if (req.body.relatedProductIds && typeof req.body.relatedProductIds === 'string') {
       req.body.relatedProductIds = req.body.relatedProductIds
         .split(',')
         .map(id => Number(id.trim()));
@@ -23,6 +24,7 @@ exports.createProduct = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 
 exports.getAllProducts = async (req, res) => {
