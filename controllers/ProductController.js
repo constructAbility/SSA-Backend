@@ -1,20 +1,25 @@
 const Product = require('../models/Product');
 
+    const mongoose = require('mongoose');
 
 exports.createProduct = async (req, res) => {
   try {
-  
+
     if (req.file) {
       req.body.productImage = `/uploads/${req.file.filename}`;
     }
 
-    
+  
 
-    if (req.body.relatedProductIds && typeof req.body.relatedProductIds === 'string') {
-      req.body.relatedProductIds = req.body.relatedProductIds
-        .split(',')
-        .map(id => Number(id.trim()));
-    }
+if (typeof req.body.relatedProductIds === 'string') {
+  try {
+    const ids = JSON.parse(req.body.relatedProductIds);
+    req.body.relatedProductId = ids.map(id => mongoose.Types.ObjectId(id));
+  } catch (error) {
+    return res.status(400).json({ message: 'Invalid relatedProductIds format' });
+  }
+}
+
 
     const product = new Product(req.body);
     await product.save();
@@ -24,7 +29,6 @@ exports.createProduct = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
 
 
 exports.getAllProducts = async (req, res) => {
