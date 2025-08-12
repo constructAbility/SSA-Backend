@@ -6,7 +6,7 @@ const generateToken = (user) => {
   return jwt.sign(
     { id: user._id, role: user.role },
     process.env.JWT_SECRET,
-    { expiresIn: '1h' }
+    { expiresIn: '1d' }
   );
 };
 
@@ -31,7 +31,7 @@ exports.register = async (req, res) => {
   const verifyToken = jwt.sign(
   { name, email: email.trim().toLowerCase(), password, role }, 
   process.env.JWT_SECRET,
-  { expiresIn: '1h' }
+  { expiresIn: '15m' }
 );
 
     const link = `${process.env.BASE_URL}/api/auth/verify/${verifyToken}`;
@@ -183,5 +183,15 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Login failed', error: err.message });
   }
 };
-;
+
+exports.Getalluser= async (req,res)=>{
+try{
+  const user=await User.find();
+  res.json(user)
+}catch(err){
+  res.status(500).json({ message: err.message });
+}
+
+
+}
 
