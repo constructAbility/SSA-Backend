@@ -8,7 +8,7 @@ const productSchema = new mongoose.Schema({
   productName: String,
   productId: String,
   productDescription: String,
-  relatedProductId:[String],
+  relatedProductIds:[String],
 // [{
 //   type: mongoose.Schema.Types.ObjectId,
 //   ref: 'Product'

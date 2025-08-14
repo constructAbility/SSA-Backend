@@ -77,7 +77,7 @@ exports.updateProduct = async (req, res) => {
           }
         }
 
-        req.body.relatedProductId = objectIds;
+        req.body.relatedProductIds = objectIds;
 
       } catch (error) {
         return res.status(400).json({ message: 'Invalid relatedProductIds format' });
