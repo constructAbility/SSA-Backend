@@ -2,6 +2,7 @@ const Product = require('../models/Product');
 
     const mongoose = require('mongoose');
 
+
 exports.createProduct = async (req, res) => {
   try {
 
@@ -54,7 +55,45 @@ exports.getProductById = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
   try {
-    const updated = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (req.file) {
+      req.body.productImage = `/uploads/${req.file.filename}`;
+    }
+
+    if (typeof req.body.relatedProductIds === 'string') {
+      try {
+        const ids = JSON.parse(req.body.relatedProductIds);
+
+        const objectIds = [];
+        for (const id of ids) {
+          if (mongoose.Types.ObjectId.isValid(id)) {
+         
+            objectIds.push(mongoose.Types.ObjectId(id));
+          } else {
+           
+            const product = await Product.findOne({ productId: id });
+            if (product) {
+              objectIds.push(product._id);
+            }
+          }
+        }
+
+        req.body.relatedProductId = objectIds;
+
+      } catch (error) {
+        return res.status(400).json({ message: 'Invalid relatedProductIds format' });
+      }
+    }
+
+    const updated = await Product.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
     res.json(updated);
   } catch (err) {
     res.status(500).json({ message: err.message });

@@ -6,13 +6,13 @@ const productSchema = new mongoose.Schema({
   productCategory: String,
   productImage: String, 
   productName: String,
-  productIds: String,
+  productId: String,
   productDescription: String,
-  relatedProductId: [{
-  type: mongoose.Schema.Types.ObjectId,
-  ref: 'Product'
-}],
-
+  relatedProductId:[String],
+// [{
+//   type: mongoose.Schema.Types.ObjectId,
+//   ref: 'Product'
+// }],
   tags:[String]
 },{ timestamps: true });
 
