@@ -7,7 +7,7 @@ exports.createProduct = async (req, res) => {
       req.body.productImage = `/uploads/${req.file.filename}`;
     }
 
-    // ✅ Handle relatedProductIds in multiple formats
+   
     if (req.body.relatedProductIds) {
       let ids = [];
       try {
@@ -15,10 +15,10 @@ exports.createProduct = async (req, res) => {
           ids = req.body.relatedProductIds;
         } else if (typeof req.body.relatedProductIds === 'string') {
           try {
-            // Try JSON parse first
+           
             ids = JSON.parse(req.body.relatedProductIds);
           } catch {
-            // Fallback: split comma-separated string
+           
             ids = req.body.relatedProductIds.split(',').map(id => id.trim());
           }
         }
@@ -56,40 +56,81 @@ exports.getProductById = async (req, res) => {
   }
 };
 
+
+
 exports.updateProduct = async (req, res) => {
   try {
-    if (req.file) {
-      req.body.productImage = `/uploads/${req.file.filename}`;
-    }
+    const { id } = req.params;
 
-    if (req.body.relatedProductIds) {
-      let ids = [];
-      try {
-        if (Array.isArray(req.body.relatedProductIds)) {
-          ids = req.body.relatedProductIds;
-        } else if (typeof req.body.relatedProductIds === 'string') {
-          try {
-            ids = JSON.parse(req.body.relatedProductIds);
-          } catch {
-            ids = req.body.relatedProductIds.split(',').map(id => id.trim());
-          }
-        }
-        req.body.relatedProductIds = ids;
-      } catch (error) {
-        return res.status(400).json({ message: 'Invalid relatedProductIds format' });
-      }
-    }
-
-    const updated = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updated) {
+    // Get existing product first
+    const existingProduct = await Product.findById(id);
+    if (!existingProduct) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    res.json(updated);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    // Agar nayi file aayi hai to productImage set karo, warna purani image rakh lo
+    let productImage = existingProduct.productImage;
+    if (req.file) {
+      productImage = `/uploads/${req.file.filename}`;
+    }
+
+    // Get other fields safely
+    let {
+      productCategory,
+      productName,
+      productId,
+      productDescription,
+      relatedProductIds,
+      tags
+    } = req.body || {};
+
+    // Convert relatedProductIds to array if string
+    if (typeof relatedProductIds === 'string') {
+      relatedProductIds = relatedProductIds
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean);
+    }
+
+    // Convert tags to array if string
+    if (typeof tags === 'string') {
+      tags = tags
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean);
+    }
+
+    // Build update object dynamically
+    const updateData = {
+      productImage, // always include resolved image path
+      ...(productCategory !== undefined && { productCategory }),
+      ...(productName !== undefined && { productName }),
+      ...(productId !== undefined && { productId }),
+      ...(productDescription !== undefined && { productDescription }),
+      ...(relatedProductIds !== undefined && { relatedProductIds }),
+      ...(tags !== undefined && { tags })
+    };
+
+    // Update in DB
+    const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true
+    });
+
+    res.json({
+      message: 'Product updated successfully',
+      product: updatedProduct
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: 'Error updating product',
+      error: error.message
+    });
   }
 };
+
+
 
 exports.deleteProduct = async (req, res) => {
   try {
