@@ -1,36 +1,41 @@
 const Product = require('../models/Product');
-
-    const mongoose = require('mongoose');
-
+const mongoose = require('mongoose');
 
 exports.createProduct = async (req, res) => {
   try {
-
     if (req.file) {
       req.body.productImage = `/uploads/${req.file.filename}`;
     }
 
-  
-
-if (typeof req.body.relatedProductIds === 'string') {
-  try {
-    const ids = JSON.parse(req.body.relatedProductIds);
-    req.body.relatedProductId = ids.map(id => mongoose.Types.ObjectId(id));
-  } catch (error) {
-    return res.status(400).json({ message: 'Invalid relatedProductIds format' });
-  }
-}
-
+    // ✅ Handle relatedProductIds in multiple formats
+    if (req.body.relatedProductIds) {
+      let ids = [];
+      try {
+        if (Array.isArray(req.body.relatedProductIds)) {
+          ids = req.body.relatedProductIds;
+        } else if (typeof req.body.relatedProductIds === 'string') {
+          try {
+            // Try JSON parse first
+            ids = JSON.parse(req.body.relatedProductIds);
+          } catch {
+            // Fallback: split comma-separated string
+            ids = req.body.relatedProductIds.split(',').map(id => id.trim());
+          }
+        }
+        req.body.relatedProductIds = ids;
+      } catch (error) {
+        return res.status(400).json({ message: 'Invalid relatedProductIds format' });
+      }
+    }
 
     const product = new Product(req.body);
     await product.save();
-
     res.status(201).json(product);
+
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
-
 
 exports.getAllProducts = async (req, res) => {
   try {
@@ -40,7 +45,6 @@ exports.getAllProducts = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
 
 exports.getProductById = async (req, res) => {
   try {
@@ -52,44 +56,31 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-
 exports.updateProduct = async (req, res) => {
   try {
     if (req.file) {
       req.body.productImage = `/uploads/${req.file.filename}`;
     }
 
-    if (typeof req.body.relatedProductIds === 'string') {
+    if (req.body.relatedProductIds) {
+      let ids = [];
       try {
-        const ids = JSON.parse(req.body.relatedProductIds);
-
-        const objectIds = [];
-        for (const id of ids) {
-          if (mongoose.Types.ObjectId.isValid(id)) {
-         
-            objectIds.push(mongoose.Types.ObjectId(id));
-          } else {
-           
-            const product = await Product.findOne({ productId: id });
-            if (product) {
-              objectIds.push(product._id);
-            }
+        if (Array.isArray(req.body.relatedProductIds)) {
+          ids = req.body.relatedProductIds;
+        } else if (typeof req.body.relatedProductIds === 'string') {
+          try {
+            ids = JSON.parse(req.body.relatedProductIds);
+          } catch {
+            ids = req.body.relatedProductIds.split(',').map(id => id.trim());
           }
         }
-
-        req.body.relatedProductIds = objectIds;
-
+        req.body.relatedProductIds = ids;
       } catch (error) {
         return res.status(400).json({ message: 'Invalid relatedProductIds format' });
       }
     }
 
-    const updated = await Product.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-
+    const updated = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!updated) {
       return res.status(404).json({ message: 'Product not found' });
     }
@@ -99,7 +90,6 @@ exports.updateProduct = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
 
 exports.deleteProduct = async (req, res) => {
   try {
