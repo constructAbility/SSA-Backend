@@ -322,7 +322,48 @@ const products = [
     tags: ["cable", "solar", "charge"],
     price: 399,
     bestSeller: false
-  }
+  },
+ {
+  productCategory: "Solar",
+  productName: "Solar Fan",
+  productId: "30",
+  productDescription: "Energy-saving solar-powered tabletop fan.",
+  relatedProductIds: [28, 4],
+  tags: ["fan", "solar", "cooling"],
+  price: 1200,
+  bestSeller: false
+},
+{
+  productCategory: "Electronics",
+  productName: "Circuit Board",
+  productId: "31",
+  productDescription: "Multi-layered PCB for electronic project assembly.",
+  relatedProductIds: [33, 34, 40],
+  tags: ["PCB", "circuit", "board"],
+  price: 999,
+  bestSeller: false
+},
+{
+  productCategory: "Electronics",
+  productName: "Sensor",
+  productId: "32",
+  productDescription: "Sensor module compatible with Arduino for automation.",
+  relatedProductIds: [40, 33],
+  tags: ["sensor", "module", "automation"],
+  price: 799,
+  bestSeller: false
+},
+{
+  productCategory: "Electronics",
+  productName: "Arduino UNO",
+  productId: "40",
+  productDescription: "Popular Arduino UNO board for beginner to advanced electronics.",
+  relatedProductIds: [32, 33, 35],
+  tags: ["arduino", "microcontroller", "UNO"],
+  price: 1450,
+  bestSeller: true
+}
+
 ];
 
 async function seedDB() {
@@ -332,7 +373,7 @@ async function seedDB() {
     console.log('MongoDB connected ✅');
 
     await Product.deleteMany({}); // purana data clean karne ke liye
-    console.log('Old products removed');
+      console.log('Old products removed');
 
     await Product.insertMany(products);
     console.log('New products added ✅');

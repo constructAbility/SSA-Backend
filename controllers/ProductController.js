@@ -62,19 +62,19 @@ exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Get existing product first
+    // Pehle existing product nikal lo
     const existingProduct = await Product.findById(id);
     if (!existingProduct) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Agar nayi file aayi hai to productImage set karo, warna purani image rakh lo
+    // Image handle karo
     let productImage = existingProduct.productImage;
     if (req.file) {
       productImage = `/uploads/${req.file.filename}`;
     }
 
-    // Get other fields safely
+    // Body fields le lo 
     let {
       productCategory,
       productName,
@@ -84,34 +84,38 @@ exports.updateProduct = async (req, res) => {
       tags
     } = req.body || {};
 
-    // Convert relatedProductIds to array if string
+    // relatedProductIds handle karo
     if (typeof relatedProductIds === 'string') {
       relatedProductIds = relatedProductIds
         .split(',')
         .map(item => item.trim())
         .filter(Boolean);
+    } else if (!relatedProductIds) {
+      relatedProductIds = existingProduct.relatedProductIds;
     }
 
-    // Convert tags to array if string
+    // tags handle karo
     if (typeof tags === 'string') {
       tags = tags
         .split(',')
         .map(item => item.trim())
         .filter(Boolean);
+    } else if (!tags) {
+      tags = existingProduct.tags;
     }
 
-    // Build update object dynamically
+    
     const updateData = {
-      productImage, // always include resolved image path
-      ...(productCategory !== undefined && { productCategory }),
-      ...(productName !== undefined && { productName }),
-      ...(productId !== undefined && { productId }),
-      ...(productDescription !== undefined && { productDescription }),
-      ...(relatedProductIds !== undefined && { relatedProductIds }),
-      ...(tags !== undefined && { tags })
+      productImage,
+      productCategory: productCategory ?? existingProduct.productCategory,
+      productName: productName ?? existingProduct.productName,
+      productId: productId ?? existingProduct.productId,
+      productDescription: productDescription ?? existingProduct.productDescription,
+      relatedProductIds,
+      tags
     };
 
-    // Update in DB
+  
     const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true
