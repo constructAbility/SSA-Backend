@@ -362,8 +362,17 @@ const products = [
   tags: ["arduino", "microcontroller", "UNO"],
   price: 1450,
   bestSeller: true
+},
+{
+  productCategory: "Electronics",
+  productName: "Arduino UNO",
+  productId: "40",
+  productDescription: "Popular Arduino UNO board for beginner to advanced electronics.",
+  relatedProductIds: [32, 33, 35],
+  tags: ["arduino", "microcontroller", "UNO"],
+  price: 1450,
+  bestSeller: true
 }
-
 ];
 
 async function seedDB() {
@@ -372,8 +381,8 @@ async function seedDB() {
 
     console.log('MongoDB connected ✅');
 
-    await Product.deleteMany({}); // purana data clean karne ke liye
-      console.log('Old products removed');
+    // await Product.deleteMany({}); // purana data clean karne ke liye
+    //   console.log('Old products removed');
 
     await Product.insertMany(products);
     console.log('New products added ✅');
