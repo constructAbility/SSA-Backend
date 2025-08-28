@@ -49,6 +49,30 @@ const appendToSheet = async (range, values) => {
   });
 };
 
+function getFormattedDateTime() {
+  const now = new Date();
+
+  const istDateTime = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true, 
+  }).formatToParts(now);
+
+  let dateParts = {};
+  istDateTime.forEach(({ type, value }) => {
+    dateParts[type] = value;
+  });
+
+  const formattedDate = `${dateParts.day}/${dateParts.month}/${dateParts.year}`;
+  const formattedTime = `${dateParts.hour}:${dateParts.minute}:${dateParts.second} ${dateParts.dayPeriod}`;
+
+  return `${formattedDate} ${formattedTime}`;
+}
 
 //yaha imq jo j wo order place wala route h 
 router.post("/inq", async (req, res) => {
@@ -84,6 +108,7 @@ router.post("/inq", async (req, res) => {
     const productSummary = items
       .map((item) => `${item.productname} (x${item.quantity})`)
       .join(", ");
+        const formattedDateTime = getFormattedDateTime();
 
     await appendToSheet("INQ!A1:I", [
       quotationNumber,
@@ -94,7 +119,7 @@ router.post("/inq", async (req, res) => {
       customer.city,
       customer.pincode,
       productSummary,
-      new Date().toLocaleString(),
+      formattedDateTime,
     ]);
       const emailContent = `
       <h2>Quotation - ${quotationNumber}</h2>
@@ -105,7 +130,7 @@ router.post("/inq", async (req, res) => {
       </ul>
       <p><strong>Address:</strong> ${customer.address}, ${customer.city} - ${customer.pincode}</p>
       <p><strong>Phone:</strong> ${customer.phone}</p>
-      <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+      <p><strong>Date:</strong> ${formattedDateTime}</p>
 
       <p>If any question please contect : 78xxxxxx, 87xxxxxx
       </p>
@@ -162,9 +187,8 @@ router.post("/cart-entry", async (req, res) => {
       quantity,
       total,
     } = req.body;
-
-    //  console.log("Received data:", req.body);
-    await appendToSheet("CART!A2:I", [
+    const formattedDateTime = getFormattedDateTime();
+await appendToSheet("CART!A2:I", [
       username,
       email,
       phone,
@@ -173,7 +197,7 @@ router.post("/cart-entry", async (req, res) => {
       price,
       quantity,
       total,
-      new Date().toLocaleString(),
+      formattedDateTime,
     ]);
 
     res.status(200).json({ message: "Sheet updated" });
