@@ -381,8 +381,8 @@ async function seedDB() {
 
     console.log('MongoDB connected ✅');
 
-    // await Product.deleteMany({}); // purana data clean karne ke liye
-    //   console.log('Old products removed');
+    await Product.deleteMany({}); // purana data clean karne ke liye
+      console.log('Old products removed');
 
     await Product.insertMany(products);
     console.log('New products added ✅');

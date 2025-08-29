@@ -1,30 +1,48 @@
 const Product = require('../models/Product');
-const mongoose = require('mongoose');
+
+// 🟢 Helper function to normalize arrays (relatedProductIds, tags, etc.)
+const normalizeArray = (value, fallback = []) => {
+  if (!value) return fallback;
+
+  if (Array.isArray(value)) {
+    return value.map(v => v.toString().trim());
+  }
+
+  if (typeof value === "string") {
+    value = value.replace(/\\"/g, '"'); // remove escaped quotes
+    if (value.trim() === "") return fallback;
+
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parsed.map(v => v.toString().trim());
+      }
+    } catch {
+      return value.split(",").map(v => v.trim()).filter(Boolean);
+    }
+  }
+
+  return fallback;
+};
+
+// 🟢 Create Product
 exports.createProduct = async (req, res) => {
   try {
-    // 🖼️ Image handle (Cloudinary se secure_url milega)
+    // If new image uploaded
     if (req.file) {
       req.body.productImage = req.file.path;  
     }
 
-    // 🔗 Related Product IDs handle
+    // Handle relatedProductIds
     if (req.body.relatedProductIds) {
-      let ids = [];
-      if (Array.isArray(req.body.relatedProductIds)) {
-        ids = req.body.relatedProductIds;
-      } else if (typeof req.body.relatedProductIds === 'string') {
-        if (req.body.relatedProductIds.trim() !== "") {
-          try {
-            ids = JSON.parse(req.body.relatedProductIds);
-          } catch {
-            ids = req.body.relatedProductIds.split(',').map(id => id.trim());
-          }
-        }
-      }
-      req.body.relatedProductIds = ids;
+      req.body.relatedProductIds = normalizeArray(req.body.relatedProductIds, []);
     }
 
-    // ✅ Create product
+    // Handle tags
+    if (req.body.tags) {
+      req.body.tags = normalizeArray(req.body.tags, []);
+    }
+
     const product = new Product(req.body);
     await product.save();
 
@@ -36,7 +54,7 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-
+// 🟢 Get all products
 exports.getAllProducts = async (req, res) => {
   try {
     const products = await Product.find();
@@ -46,58 +64,34 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
+// 🟢 Get product by ID
 exports.getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    if (!product) return res.status(404).json({ message: 'Not found' });
+    if (!product) return res.status(404).json({ message: 'Product not found' });
     res.json(product);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-
-
+// 🟢 Update product
 exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // 🟢 Find existing product
     const existingProduct = await Product.findById(id);
     if (!existingProduct) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // 🖼️ Image handle (Cloudinary se path aata hai)
+    // Handle image: keep old one unless new uploaded
     let productImage = existingProduct.productImage;
     if (req.file) {
-      productImage = req.file.path; // ✅ Cloudinary URL
+      productImage = req.file.path; // New uploaded file
     }
 
-    // 🟢 Helper function to normalize arrays
-    const normalizeArray = (value, fallback = []) => {
-      if (!value) return fallback;
-
-      if (Array.isArray(value)) {
-        return value.map((v) => v.toString().trim());
-      }
-
-      if (typeof value === "string") {
-        if (value.trim() === "") return fallback;
-        try {
-          const parsed = JSON.parse(value);
-          if (Array.isArray(parsed)) {
-            return parsed.map((v) => v.toString().trim());
-          }
-        } catch {
-          return value.split(",").map((v) => v.trim()).filter(Boolean);
-        }
-      }
-
-      return fallback;
-    };
-
-    // 🟢 Fields le lo from body
+    // Destructure body
     let {
       productCategory,
       productName,
@@ -107,14 +101,11 @@ exports.updateProduct = async (req, res) => {
       tags,
     } = req.body || {};
 
-    // ✅ Normalize relatedProductIds and tags
-    relatedProductIds = normalizeArray(
-      relatedProductIds,
-      existingProduct.relatedProductIds
-    );
+    // Normalize arrays
+    relatedProductIds = normalizeArray(relatedProductIds, existingProduct.relatedProductIds);
     tags = normalizeArray(tags, existingProduct.tags);
 
-    // 🟢 Prepare update data
+    // Prepare update data
     const updateData = {
       productImage,
       productCategory: productCategory ?? existingProduct.productCategory,
@@ -125,7 +116,7 @@ exports.updateProduct = async (req, res) => {
       tags,
     };
 
-    // 🟢 Update in DB
+    // Update in DB
     const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
@@ -144,10 +135,7 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
-
-
-
-
+// 🟢 Delete product
 exports.deleteProduct = async (req, res) => {
   try {
     await Product.findByIdAndDelete(req.params.id);
