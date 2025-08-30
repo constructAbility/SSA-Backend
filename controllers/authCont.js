@@ -1,6 +1,8 @@
+const crypto = require('crypto');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const sendEmail = require('../utils/sendEmail');
+const bcrypt = require('bcrypt');
 
 const generateToken = (user) => {
   return jwt.sign(
@@ -194,4 +196,71 @@ try{
 
 
 }
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) return res.status(400).json({ message: 'Email is required' });
+
+    const user = await User.findOne({ email: email.trim().toLowerCase() });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Generate reset token (JWT or random string)
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = Date.now() + 3600000; // 1 hour
+
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpiry = resetTokenExpiry;
+    await user.save();
+
+    // Email link
+    const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    const emailHTML = `
+      <p>Hello ${user.name},</p>
+      <p>Click the link below to reset your password (valid 1 hour):</p>
+      <a href="${resetURL}">Reset Password</a>
+    `;
+
+    await sendEmail(user.email, 'Password Reset - SSA', emailHTML);
+
+    res.status(200).json({ message: 'Password reset link sent to your email' });
+
+  } catch (err) {
+    console.error('Forgot Password Error:', err);
+    res.status(500).json({ message: 'Something went wrong', error: err.message });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ message: 'Token and new password are required' });
+    }
+
+    // Find user by reset token and check expiry
+    const user = await User.findOne({ 
+      resetPasswordToken: token,
+      resetPasswordExpiry: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+
+    // ✅ Assign plain password — pre('save') hook will hash it
+    user.password = newPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpiry = undefined;
+
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successful' });
+
+  } catch (err) {
+    console.error('Reset Password Error:', err);
+    res.status(500).json({ message: 'Something went wrong', error: err.message });
+  }
+};
 

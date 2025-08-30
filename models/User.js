@@ -7,7 +7,9 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['admin', 'user'], default: 'user' },
-  isVerified: { type: Boolean, default: false }
+  isVerified: { type: Boolean, default: false },
+  resetPasswordToken: String,
+  resetPasswordExpiry: Date,
 });
 
 
@@ -22,5 +24,6 @@ userSchema.pre('save', async function (next) {
 userSchema.methods.matchPassword = function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);
 };
+
 
 module.exports = mongoose.model('User', userSchema);

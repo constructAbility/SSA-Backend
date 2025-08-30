@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, login,verifyEmail,Getalluser } = require('../controllers/authCont');
+const { register, login,verifyEmail,Getalluser,resetPassword,forgotPassword } = require('../controllers/authCont');
 
 router.post('/register', register);
 router.post('/login', login);
@@ -8,4 +8,6 @@ router.post('/login', login);
 // router.post('/admin/login',adminlogin)
 router.get('/verify/:token', verifyEmail);
 router.get('/user',Getalluser);
+router.post('/reset-password', resetPassword);
+router.post('/forgot-password', forgotPassword);
 module.exports = router;
