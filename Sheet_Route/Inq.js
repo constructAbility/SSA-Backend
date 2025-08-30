@@ -122,18 +122,134 @@ router.post("/inq", async (req, res) => {
       formattedDateTime,
     ]);
       const emailContent = `
-      <h2>Quotation - ${quotationNumber}</h2>
-      <p>Hello ${fullName},</p>
-      <p>Thank you for your inquiry. Here is your quotation:</p>
-      <ul>
-        ${items.map(item => `<li>${item.productname} - ₹${item.price} x ${item.quantity}</li>`).join("")}
-      </ul>
-      <p><strong>Address:</strong> ${customer.address}, ${customer.city} - ${customer.pincode}</p>
-      <p><strong>Phone:</strong> ${customer.phone}</p>
-      <p><strong>Date:</strong> ${formattedDateTime}</p>
+       <table
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      style="height: 100vh"
+    >
+      <tr>
+        <td align="center">
+          <table
+            width="600"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            style="border: 1px solid #e0e0e0"
+          >
+            <!-- Header -->
+            <tr>
+              <td
+                align="center"
+                style="
+                  background: #fff;
+                  padding: 15px 0;
+                  border-bottom: 3px solid #1744a1;
+                "
+              >
+                <a href="https://ssaenterprises.com/" target="_blank">
+                  <img
+                    src="https://res.cloudinary.com/dpk2qxvkb/image/upload/v1754552334/logo-ssa-2_jojbs5.png"
+                    alt="logo"
+                    style="height: 60px"
+                  />
+                </a>
+              </td>
+            </tr>
 
-      <p>If any question please contect : 78xxxxxx, 87xxxxxx
-      </p>
+            <!-- Title -->
+            <tr>
+              <td align="center" style="padding: 30px 20px 10px">
+                <h2 style="font-size: 24px; color: #1744a1; margin: 0">
+                  Quotation - ${quotationNumber}
+                </h2>
+              </td>
+            </tr>
+
+            <!-- Greeting -->
+            <tr>
+              <td align="left" style="padding: 10px 30px">
+                <p style="font-size: 16px; color: #333; margin: 0">
+                  Hello <strong>${fullName}</strong>,
+                </p>
+                <p style="font-size: 16px; color: #333; margin: 10px 0">
+                  Thank you for your inquiry. Here is your quotation:
+                </p>
+              </td>
+            </tr>
+
+            <!-- Items List -->
+            <tr>
+              <td align="left" style="padding: 10px 30px">
+                <ul
+                  style="
+                    font-size: 15px;
+                    color: #1744a1;
+                    padding-left: 20px;
+                    margin: 0;
+                  "
+                >
+                  ${items .map( item => `
+                  <li>
+                    ${item.productname} - ₹${item.price} x ${item.quantity}
+                  </li>
+                  ` ) .join("")}
+                </ul>
+              </td>
+            </tr>
+
+            <!-- Customer Details -->
+            <tr>
+              <td align="left" style="padding: 20px 30px">
+                <p style="font-size: 15px; color: #333; margin: 5px 0">
+                  <strong>Address:</strong> ${customer.address},
+                  ${customer.city} - ${customer.pincode}
+                </p>
+                <p style="font-size: 15px; color: #333; margin: 5px 0">
+                  <strong>Phone:</strong> ${customer.phone}
+                </p>
+                <p style="font-size: 15px; color: #333; margin: 5px 0">
+                  <strong>Date:</strong> ${formattedDateTime}
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td
+                align="center"
+                style="padding: 20px 30px; font-size: 14px; color: #555"
+              >
+                <p style="margin: 0">
+                  If you have any questions, please contact:
+                  <a href="tel: +91 9910248056" style="text-decoration: none; color: #555;">+91 9910248056</a>
+                  <a
+                    href="tel: +91 7690904679"
+                    style="text-decoration: none; color: #555;"
+                    >+91 7690904679</a
+                  >
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td
+                align="center"
+                style="
+                  background: #f5f5f5;
+                  padding: 15px;
+                  color: #1744a1;
+                  font-size: 13px;
+                  font-weight: bold;
+                "
+              >
+                Copyright © 2024, SSA Enterprises, All Rights Reserved.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
       
       
     `;

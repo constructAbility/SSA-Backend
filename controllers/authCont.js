@@ -216,9 +216,65 @@ exports.forgotPassword = async (req, res) => {
     // Email link
     const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
     const emailHTML = `
-      <p>Hello ${user.name},</p>
-      <p>Click the link below to reset your password (valid 1 hour):</p>
-      <a href="${resetURL}">Reset Password</a>
+       <table width="100%" cellpadding="0" cellspacing="0" border="0" style="height: 100vh;">
+      <tr>
+        <td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" border="0" style="border: 1px solid #e0e0e0;">
+
+            <!-- Header -->
+            <tr>
+              <td align="center" style="background: #fff; padding: 15px 0; border-bottom: 3px solid #1744a1;">
+                <a href="https://ssaenterprises.com/" target="_blank">
+                  <img src="https://res.cloudinary.com/dpk2qxvkb/image/upload/v1754552334/logo-ssa-2_jojbs5.png" alt="logo" style="height: 60px;" />
+                </a>
+              </td>
+            </tr>
+
+            <tr>
+              <td align="center" style="padding: 40px 20px 10px;">
+                <h2 style="font-size: 24px; color: #1744a1; margin: 0;">Hello ${user.name}</h2>
+              </td>
+            </tr>
+
+            <tr>
+              <td align="center" style="padding: 10px 20px;">
+                <p style="font-size: 16px; color: #1744a1; margin: 0;">
+                  We received a request to reset your password. Click the link below to set a new password.  
+                  <br /><br />
+                  <strong>(This link is valid for only 1 hour.)</strong>
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td align="center" style="padding: 20px 0;">
+                <a href="${resetURL}" style="display: inline-block; background: #1744a1; color: #fff; padding: 12px 25px; text-decoration: none; font-size: 16px; border-radius: 5px; font-weight: bold;">
+                  Reset Password
+                </a>
+              </td>
+            </tr>
+
+            <!-- Security Note -->
+            <tr>
+              <td align="center" style="padding: 20px; font-size: 14px; color: #555;">
+                <p style="margin: 0;">
+                  If you didn’t request this, you can safely ignore this email.  
+                  Your password will remain unchanged.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td align="center" style="background: #f5f5f5; padding: 15px; color: #1744a1; font-size: 13px; font-weight: bold;">
+                Copyright © 2024, SSA Enterprises, All Rights Reserved.
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
     `;
 
     await sendEmail(user.email, 'Password Reset - SSA', emailHTML);
