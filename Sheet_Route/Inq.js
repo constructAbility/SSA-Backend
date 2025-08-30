@@ -174,7 +174,7 @@ router.post("/inq", async (req, res) => {
                   Hello <strong>${fullName}</strong>,
                 </p>
                 <p style="font-size: 16px; color: #333; margin: 10px 0">
-                  Thank you for your inquiry. Here is your quotation:
+                  Thank you for your enquiry. Here is your quotation:
                 </p>
               </td>
             </tr>

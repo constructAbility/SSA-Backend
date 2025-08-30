@@ -42,6 +42,7 @@ exports.createProduct = async (req, res) => {
     if (req.body.tags) {
       req.body.tags = normalizeArray(req.body.tags, []);
     }
+ req.body.bestSeller = req.body.bestSeller === "true" || req.body.bestSeller === true;
 
     const product = new Product(req.body);
     await product.save();
@@ -99,6 +100,7 @@ exports.updateProduct = async (req, res) => {
       productDescription,
       relatedProductIds,
       tags,
+      bestSeller
     } = req.body || {};
 
     // Normalize arrays
@@ -114,6 +116,7 @@ exports.updateProduct = async (req, res) => {
       productDescription: productDescription ?? existingProduct.productDescription,
       relatedProductIds,
       tags,
+        bestSeller: bestSeller !== undefined ? (bestSeller === "true" || bestSeller === true) : existingProduct.bestSeller
     };
 
     // Update in DB
@@ -142,5 +145,25 @@ exports.deleteProduct = async (req, res) => {
     res.json({ message: 'Deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+exports.markBestSellers = async (req, res) => {
+  try {
+    const { productIds } = req.body; // send array of 5 product IDs
+
+    if (!Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({ message: "Provide productIds array" });
+    }
+
+    // First reset all
+    await Product.updateMany({}, { $set: { bestSeller: false } });
+
+    // Mark only given IDs
+    await Product.updateMany({ _id: { $in: productIds } }, { $set: { bestSeller: true } });
+
+    res.json({ message: "Selected products marked as best sellers", productIds });
+  } catch (error) {
+    console.error("Mark Best Sellers Error:", error);
+    res.status(500).json({ message: error.message });
   }
 };

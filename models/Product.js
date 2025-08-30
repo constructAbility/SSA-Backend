@@ -7,7 +7,8 @@ const productSchema = new mongoose.Schema({
   productId: String,
   productDescription: String,
   relatedProductIds: [String], // ✅ plural and consistent
-  tags: [String]
+  tags: [String],
+  bestSeller: { type: Boolean, default: false }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Product', productSchema);
